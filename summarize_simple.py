@@ -41,7 +41,7 @@ def extract_sentences(text: str)-> List[str]:
     res = []
     for s in sents:
         s = s.strip()
-        if len(s) > 5:  # remove short sentences
+        if len(s) > 3:  # ignore short sentences with 1-3 symbols
             res.append(s)
     return res
 
@@ -137,18 +137,20 @@ def extract_sum(text: str, n: int, stop_words:List[str]=stop_words) -> List[str]
 
     return List[str]
     """
-    sents = extract_sentences(text)
-
     if n <= 0:
         return []
+
+    sents = extract_sentences(text)
 
     if n >= len(sents):
         return sents
 
+    sents = [s for s in sents if len(s) > 10]  # remove short sentences
+
     tokenized_sents = [tokenize(s, stop_words=stop_words) for s in sents]
 
     data = list(zip(sents, tokenized_sents))
-    data = [d for d in data if len(d[1]) > 2]  # remove short sentences
+    data = [d for d in data if len(d[1]) > 2]  # remove short sentences with less than 3 word
     sents = [d[0] for d in data]
     tokenized_sents = [d[1] for d in data]
 
