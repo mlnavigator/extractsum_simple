@@ -38,12 +38,8 @@ def extract_sentences(text: str)-> List[str]:
     text = re.sub(r'([a-zа-яё]{2,}\s*[.?!]+)\s*([A-ZА-ЯЁ])', '\g<1><sep>\g<2>', text)  # start of sentence
     text = re.sub(r'([a-zа-яё]{2,}[.?!]+)\s+(\d)', '\g<1><sep>\g<2>', text)  # start of numbered item
     sents = text.split('<sep>')
-    res = []
-    for s in sents:
-        s = s.strip()
-        if len(s) > 3:  # ignore short sentences with 1-3 symbols
-            res.append(s)
-    return res
+    sents = [s.strip() for s in sents]
+    return sents
 
 
 def get_sentences_sim(s1: List[str], s2: List[str]) -> float:
@@ -145,8 +141,6 @@ def extract_sum(text: str, n: int, stop_words:List[str]=stop_words) -> List[str]
     if n >= len(sents):
         return sents
 
-    sents = [s for s in sents if len(s) > 10]  # remove short sentences
-
     tokenized_sents = [tokenize(s, stop_words=stop_words) for s in sents]
 
     data = list(zip(sents, tokenized_sents))
@@ -175,6 +169,9 @@ def summarize(text: str, n: Union[int, None]=None, first_n: int=4, last_n: int=2
     return: str
     """
     sents = extract_sentences(text)
+    sents = [s.strip() for s in sents]
+    sents = [s for s in sents if len(s) > 10]  # remove short sentences
+
     first_n = min(int(first_n), len(sents))
     first_n = max(first_n, 0)
 
