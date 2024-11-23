@@ -74,8 +74,7 @@ def test_summarize():
 
     # Test summarize
     summary = summarize(sample_text, first_n=1, last_n=1)
-    print(summary)
-    assert len(summary.split('\n')) == 2, f"Expected 4 summary sentence, got {len(summary)}"
+    assert len(summary.split('\n')) == 6, "Expected 6 summary sentences, got {len(summary)}"
     assert "Artificial intelligence is transforming industries." in summary, "Expected first sentence missing"
     assert "Governments and organizations must address these challenges proactively." in summary, "Expected last sentence missing"
 
@@ -98,7 +97,13 @@ def test_summarize():
     summary = summarize(text, n=4, first_n=3, last_n=2)
     assert len(summary.split('\n')) == 5
 
-    print("All tests passed!")
+
+def test_extract_sentences():
+    text = ("Привет как дела? У меня все хорошо. Здравствуй!\n"
+            "Имею сказать. 1. Новый год скоро. 2. Весна после него\nА потом скоро и лето")
+    sentences = extract_sentences(text)
+    assert len(sentences) == 7, "Expected 7 sentences, got {len(sentences)}"
 
 if __name__ == "__main__":
     test_summarize()
+    test_extract_sentences()

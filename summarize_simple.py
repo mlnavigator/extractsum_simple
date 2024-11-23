@@ -33,12 +33,17 @@ def tokenize(text: str, stop_words: List[str]=stop_words)-> List[str]:
 def extract_sentences(text: str)-> List[str]:
     """Extract sentences from text."""
     text = text.strip()
-    text = text.replace('\n', '.')
+    text = text.replace('\n', '<sep>')  # new line separator
     text = re.sub(r'\.+', '.', text)
-    text = re.sub(r'([a-zа-яё]{2,}\s*[.?!]+)\s*([A-ZА-ЯЁ])', '\g<1><sep>\g<2>', text)
+    text = re.sub(r'([a-zа-яё]{2,}\s*[.?!]+)\s*([A-ZА-ЯЁ])', '\g<1><sep>\g<2>', text)  # start of sentence
+    text = re.sub(r'([a-zа-яё]{2,}[.?!]+)\s+(\d)', '\g<1><sep>\g<2>', text)  # start of numbered item
     sents = text.split('<sep>')
-    sents = [s.strip() for s in sents]
-    return [s for s in sents if len(s) > 5]
+    res = []
+    for s in sents:
+        s = s.strip()
+        if len(s) > 5:  # remove short sentences
+            res.append(s)
+    return res
 
 
 def get_sentences_sim(s1: List[str], s2: List[str]) -> float:
@@ -161,21 +166,29 @@ def summarize(text: str, n: Union[int, None]=None, first_n: int=4, last_n: int=2
     Args:
         text (str): text to summarize
         n (int): number of sentences to extract excluding the first_n and the last_n sentences.
-                 If n is None: n = int(sqrt(len(sentences))) - first_n - last_n
+                 If n is None: n = math.ceil(math.sqrt(len(sents) - first_n - last_n)) + 3
         first_n (int): number of sentences to extract from the beginning
         last_n (int): number of sentences to extract from the end
         stop_words (List[str]): list of stop words. Set [] for no stop words, use stop_words=stop_words by default.
     return: str
     """
     sents = extract_sentences(text)
+    first_n = min(int(first_n), len(sents))
+    first_n = max(first_n, 0)
+
+    last_n = min(int(last_n), len(sents))
+    last_n = max(last_n, 0)
 
     if first_n + last_n >= len(sents):
         return '\n'.join(sents)
 
     if n is None:
-        n = int(math.sqrt(len(sents))) - first_n - last_n
+        n = math.ceil(math.sqrt(len(sents) - first_n - last_n)) + 3
         if n <= 0:
             n = 0
+
+    n = min(n, len(sents) - first_n - last_n)
+    n = max(n, 0)
 
     if first_n > 0:
         sents_first = sents[:first_n]
@@ -195,6 +208,6 @@ def summarize(text: str, n: Union[int, None]=None, first_n: int=4, last_n: int=2
         sents_to_sum = sents[:-last_n]
     else:
         sents_to_sum = sents[first_n:-last_n]
-    sents_sum = extract_sum(' '.join(sents_to_sum), n)
+    sents_sum = extract_sum('\n'.join(sents_to_sum), n)
     sents_sum = sents_first + sents_sum + sents_last
     return '\n'.join(sents_sum)
